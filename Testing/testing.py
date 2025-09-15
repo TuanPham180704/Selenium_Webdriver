@@ -1,38 +1,35 @@
-import pytest
+import unittest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+import time
 
-# Fixture setup
-@pytest.fixture
-def setup():
-    driver = webdriver.Chrome()  # Cần cài ChromeDriver sẵn
-    driver.maximize_window()
-    yield driver
-    driver.quit()
+class TestFacebookLogin(unittest.TestCase):
 
-# Test case: Login thành công
-def test_login_valid(setup):
-    driver = setup
-    driver.get("https://opensource-demo.orangehrmlive.com/")
+    def setUp(self):
+        self.driver = webdriver.Chrome()
+        self.driver.maximize_window()
 
-    # Nhập username và password đúng
-    driver.find_element(By.NAME, "username").send_keys("Admin")
-    driver.find_element(By.NAME, "password").send_keys("admin123")
-    driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+    def test_login_invalid(self):
+        driver = self.driver
+        driver.get("https://www.facebook.com/")
 
-    # Kiểm tra có vào Dashboard chưa
-    assert "Dashboard" in driver.page_source
+        # Nhập email và password sai
+        driver.find_element(By.ID, "email").send_keys("phamtuan180704@gmail.com")
+        driver.find_element(By.ID, "pass").send_keys("Tuandev18")
+        driver.find_element(By.NAME, "login").click()
 
-# Test case: Login sai
-def test_login_invalid(setup):
-    driver = setup
-    driver.get("https://opensource-demo.orangehrmlive.com/")
+        time.sleep(3)  # chờ load
 
-    driver.find_element(By.NAME, "username").send_keys("WrongUser")
-    driver.find_element(By.NAME, "password").send_keys("WrongPass")
-    driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+        # Kiểm tra thông báo lỗi xuất hiện
+        self.assertTrue("The password that you've entered is incorrect" in driver.page_source 
+                        or "Invalid username" in driver.page_source
+                        or "mật khẩu bạn nhập" in driver.page_source)
 
-    # Kiểm tra thông báo lỗi
-    error_text = driver.find_element(By.CLASS_NAME, "oxd-alert-content-text").text
-    assert "Invalid credentials" in error_text
+    def tearDown(self):
+        self.driver.quit()
+
+if __name__ == "__main__":
+    unittest.main()
+
+time.sleep(10)
